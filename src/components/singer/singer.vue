@@ -1,6 +1,7 @@
 <template>
   <div class="singer" ref="singer">
-    <listview :data="singerList"></listview>
+    <listview :data="singerList" @select="selectedSinger"></listview>
+    <router-view></router-view>
   </div>
 </template>
 
@@ -25,6 +26,11 @@
       this._getSingerList();
     },
     methods: {
+      selectedSinger(singer) {
+        this.$router.push({
+          path: `/singer/${singer.id}`
+        })
+      },
       _getSingerList() {
         getSingerList().then((res) => {
           if (res.code === NET_OK) {
