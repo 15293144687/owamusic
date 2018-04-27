@@ -11,6 +11,8 @@
   import {NET_OK} from "../../api/config";
   import Singer from "../../common/js/singer";
   import Listview from "../../base/listview";
+  import {mapMutations} from 'vuex';
+  import {SET_SINGER} from "../../store/mutation-types";
 
   const HOT_NAME = '热门';
   const HOT_SINGER_LENGTH = 10;
@@ -27,6 +29,7 @@
     },
     methods: {
       selectedSinger(singer) {
+        this.setSinger(singer);
         this.$router.push({
           path: `/singer/${singer.id}`
         })
@@ -77,7 +80,10 @@
           return a.title.charCodeAt(0) - b.title.charCodeAt(0);
         });
         return hot.concat(ret);
-      }
+      },
+      ...mapMutations({
+        setSinger: SET_SINGER
+      })
     }
   }
 
