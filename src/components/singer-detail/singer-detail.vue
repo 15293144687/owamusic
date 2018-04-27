@@ -7,6 +7,9 @@
 <script>
 
   import {mapGetters} from 'vuex';
+  import {getSingerDetail} from "../../api/singer";
+  import {NET_OK} from "../../api/config";
+  import {createSong} from "../../common/js/song";
 
   export default {
     name: "singer-detail",
@@ -15,8 +18,38 @@
         'singer'
       ])
     },
-    created(){
-      console.log(this.singer);
+    data() {
+      return {
+        songs: []
+      }
+    },
+    created() {
+      this._getSingerDetail();
+    },
+    methods: {
+      _getSingerDetail() {
+        if (!this.singer.id) {
+          this.$router.push('/singer');
+          return;
+        }
+        getSingerDetail(this.singer.id).then((res) => {
+          if (res.code === NET_OK) {
+            this.songs = this._normalizeSongs(res.data.list);
+            console.log(this.songs);
+          }
+        });
+      },
+      _normalizeSongs(list) {
+        let ret = [];
+        list.forEach(item => {
+          let {musicData} = item;
+          if (musicData.songid && musicData.albummid) {
+            ret.push(createSong(musicData));
+          }
+        });
+        return ret;
+      },
+
     }
 
   }
