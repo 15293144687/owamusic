@@ -22,3 +22,31 @@ export function getData(el, name, val) {
   if (val) return el.setAttribute(attrName, val);
   else return el.getAttribute(attrName);
 }
+
+/*检测浏览器使用的是哪一种前缀*/
+let elementStyle = document.createElement('div').style;
+let vender = (() => {
+  let transformNames = {
+    wehkit: 'wehkitTransform',
+    Moz: 'MozTransform',
+    O: 'OTransform',
+    ms: 'msTransform',
+    standard: 'transform'
+  };
+  for (let key in transformNames) {
+    if (elementStyle[transformNames[key]] !== undefined) {
+      return key;
+    }
+  }
+  return false;
+})();
+
+export function prefixStye(style) {
+  if (vender === false) {
+    return false;
+  }
+  if (vender === 'standard') {
+    return style;
+  }
+  return vender + style.charAt(0).toUpperCase() + style.substr(1);
+}
