@@ -6,7 +6,7 @@
     <h1 class="title" v-html="title"></h1>
     <div class="bg-image" :style="bgStyle" ref="bgImage">
       <div class="play-wrapper">
-        <div class="play" v-show="songs.length>0" ref="playBtn">
+        <div class="play" v-show="songs.length>0" ref="playBtn" @click="randomPlayAll">
           <i class="icon-play"></i>
           <span class="text">随机播放全部</span>
         </div>
@@ -64,6 +64,11 @@
       }
     },
     methods: {
+      randomPlayAll() {
+        this.randomPlay({
+          list:this.songs
+        });
+      },
       goback() {
         this.$router.back();
       },
@@ -75,7 +80,7 @@
           list: this.songs, index
         });
       },
-      ...mapActions(['selectPlay'])
+      ...mapActions(['selectPlay', 'randomPlay'])
     },
     watch: {
       scrollY(newY) {

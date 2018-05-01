@@ -31,8 +31,12 @@
       this.touch = {};
     },
     methods: {
-      progressClick(e){
-        this._offset(e.offsetX);
+      progressClick(e) {
+        /*当点击progressBtn的时候，e.offsetX获取不对？*/
+        const rect = this.$refs.progressBar.getBoundingClientRect();
+        const offsetWidth = e.pageX - rect.left;
+        this._offset(offsetWidth);
+
         this._triggerPercent();
       },
       progressTouchStart(e) {
@@ -57,7 +61,7 @@
       _triggerPercent() {
         const barWidth = this.$refs.progressBar.clientWidth - progressBtnWidth;
         const percent = this.$refs.progress.clientWidth / barWidth;
-        this.$emit('percentChange',percent);
+        this.$emit('percentChange', percent);
       },
     },
     watch: {
