@@ -17,7 +17,7 @@
     <scroll :data="songs" class="list" ref="list" :probe-type="probeType" :listen-scroll="listenScroll"
             @scroll="scroll">
       <div class="song-list-wrapper">
-        <song-list :songs="songs"></song-list>
+        <song-list :songs="songs" @select="selectItem"></song-list>
       </div>
       <div class="loading-container" v-show="!songs.length">
         <loading></loading>
@@ -31,6 +31,7 @@
   import SongList from "../../base/song-list";
   import {prefixStye} from "../../common/js/dom";
   import Loading from "../../base/loading";
+  import {mapActions} from 'vuex';
 
   /*顶部预留高度*/
   const RESERVED_HEIGHT = 40;
@@ -69,6 +70,12 @@
       scroll(pos) {
         this.scrollY = pos.y;
       },
+      selectItem(item, index) {
+        this.selectPlay({
+          list: this.songs, index
+        });
+      },
+      ...mapActions(['selectPlay'])
     },
     watch: {
       scrollY(newY) {
