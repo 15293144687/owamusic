@@ -27,7 +27,9 @@
         <div class="bottom">
           <div class="progress-wrapper">
             <span class="time time-l">{{format(currentTime)}}</span>
-            <div class="progress-bar-wrapper"></div>
+            <div class="progress-bar-wrapper">
+              <progress-bar :percent="percent" @percentChange="onProgressBarChange"></progress-bar>
+            </div>
             <span class="time time-r">{{format(currentSong.duration)}}</span>
           </div>
           <div class="operators">
@@ -68,10 +70,12 @@
   import {SET_CURRENT_INDEX, SET_FULL_SCREEN, SET_PLAYING_STATE} from "../../store/mutation-types";
   import animations from 'create-keyframe-animation';
   import {prefixStye} from "../../common/js/dom";
+  import ProgressBar from "../../base/progress-bar";
 
   const transform = prefixStye('transform');
 
   export default {
+    components: {ProgressBar},
     name: 'player',
     created() {
     },
@@ -85,6 +89,9 @@
       }
     },
     computed: {
+      percent() {
+        return this.currentTime / this.currentSong.duration;
+      },
       playIcon() {
         return this.playing ? 'icon-pause' : 'icon-play'
       },
@@ -138,6 +145,10 @@
           len++;
         }
         return num;
+      },
+      onProgressBarChange(percent) {
+        this.$refs.audio.currentTime = this.currentSong.duration * percent;
+        if(!this.playing) this.togglePlaying();
       },
       updateTime(e) {
         this.currentTime = e.target.currentTime;
