@@ -25,6 +25,9 @@
                 <img class="image" :src="currentSong.image">
               </div>
             </div>
+            <div class="playing-lyric-wrapper">
+              <div class="playing-lyric">{{playingLyric}}</div>
+            </div>
           </div>
           <scroll class="middle-r" ref="lyricList" :data="currentLyric && currentLyric.lines">
             <div class="lyric-wrapper">
@@ -127,7 +130,8 @@
         currentTime: 0,
         currentLyric: null,
         currentLyricLineNum: 0,
-        currentShow: 'cd'
+        currentShow: 'cd',
+        playingLyric: ''
       }
     },
     computed: {
@@ -168,10 +172,13 @@
     watch: {
       currentSong(newSong, oldSong) {
         if (newSong.id === oldSong.id) return;
-        this.$nextTick(() => {
+        if (this.currentLyric) {
+          this.currentLyric.stop();
+        }
+        setTimeout(() => {
           this.$refs.audio.play();
           this._getLyric();
-        });
+        }, 1000);
       },
       playing(newPlaying) {
         this.$nextTick(() => {
@@ -202,7 +209,7 @@
         this.$refs.lyricList.$el.style[transition] = '';
         this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetWidth}px,0,0)`
 
-        this.$refs.middleL.style.opacity = 1 - (this.touch.percent-0);
+        this.$refs.middleL.style.opacity = 1 - (this.touch.percent - 0);
         this.$refs.middleL.style[transition] = '';
 
       },
@@ -238,6 +245,10 @@
         this.currentSong.getLyric().then((lyric) => {
           this.currentLyric = new Lyric(lyric, this._handleLyric);
           if (this.playing) this.currentLyric.play();
+        }).catch(() => {
+          this.currentLyric = null;
+          this.playingLyric = '';
+          this.currentLyricLineNum = 0;
         });
       },
       _handleLyric({lineNum, txt}) {
@@ -248,6 +259,7 @@
         } else {
           this.$refs.lyricList.scrollTo(0, 0, 1000);
         }
+        this.playingLyric = txt;
       },
       end() {
         if (this.mode === playMode.loop) {
@@ -258,6 +270,9 @@
       loop() {
         this.$refs.audio.currentTime = 0;
         this.$refs.audio.play();
+        if (this.currentLyric) {
+          this.currentLyric.seek();     //把歌词偏移到最开始的地方
+        }
       },
       changeMode() {
         const mode = (this.mode + 1) % 3;
@@ -292,8 +307,12 @@
         return num;
       },
       onProgressBarChange(percent) {
-        this.$refs.audio.currentTime = this.currentSong.duration * percent;
+        let currentTime = this.currentSong.duration * percent;
+        this.$refs.audio.currentTime = currentTime;
         if (!this.playing) this.togglePlaying();
+        if (this.currentLyric) {
+          this.currentLyric.seek(currentTime * 1000);
+        }
       },
       updateTime(e) {
         this.currentTime = e.target.currentTime;
@@ -307,27 +326,37 @@
       next() {
         if (!this.songReady) return;
 
-        let index = this.currentIndex + 1;
-        if (index === this.playList.length) {
-          index = 0;
+        if (this.playList.length === 1) {
+          this.loop();
+        } else {
+          let index = this.currentIndex + 1;
+          if (index === this.playList.length) {
+            index = 0;
+          }
+          this.setCurrentIndex(index);
+          if (!this.playing) {
+            this.togglePlaying();
+          }
         }
-        this.setCurrentIndex(index);
-        if (!this.playing) {
-          this.togglePlaying();
-        }
+
         this.songReady = false;
       },
       prev() {
         if (!this.songReady) return;
 
-        let index = this.currentIndex - 1;
-        if (index === -1) {
-          index = this.playList.length - 1;
+        if (this.playList.length === 1) {
+          this.loop();
+        } else {
+          let index = this.currentIndex - 1;
+          if (index === -1) {
+            index = this.playList.length - 1;
+          }
+          this.setCurrentIndex(index);
+          if (!this.playing) {
+            this.togglePlaying();
+          }
         }
-        this.setCurrentIndex(index);
-        if (!this.playing) {
-          this.togglePlaying();
-        }
+
         this.songReady = false;
 
       },
@@ -335,6 +364,9 @@
         if (!this.songReady) return;
 
         this.setPlayingState(!this.playing);
+        if (this.currentLyric) {
+          this.currentLyric.togglePlay();
+        }
       },
       goback() {
         this.setFullScreen(false);
